@@ -1,0 +1,232 @@
+<style>
+    .toolbox{
+        max-width:300px;
+    }
+    .toolbox--section{
+        border:1px solid;
+        padding:5px;
+    }
+    .toolbox--section input[type=file]{
+        padding:5px;
+    }
+
+    .checkerboard{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .checkerboard canvas{
+        background-image:
+        linear-gradient(45deg, lightgrey 25%, transparent 25%), 
+        linear-gradient(135deg, lightgrey 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, lightgrey 75%),
+        linear-gradient(135deg, transparent 75%, lightgrey 75%);
+
+        background-size: 10px 10px;
+        background-position: 0 0, 5px 0, 5px -5px, 0px 5px;
+    }
+</style>
+<div class="toolbox">
+    <h3>Hollow Knight Skin Remixer POC</h3>
+    
+    <div class="toolbox--section">
+        <label>Base Skin :</label> <input id="baseSkin" type="file">
+    </div>
+
+    <div  class="toolbox--section">
+        <label>Slash Effects :</label>
+        <br>
+        <label>Texture :</label> 
+        <input id="slashes" type="file" accept=".png,.jpg,.jpeg">
+        <br>
+        Texture Mode :
+        <select name="sm" id="slashesmode">
+            <option value="darken">Blend (darken)</option>
+            <option value="lighten">Blend (lighten)</option>
+            <option value="color">Blend (color)</option>
+            <option value="copy">Replace</option>
+        </select>
+        <br>
+        Colorize Texture:
+        <select name="cm" id="enablecolorize">
+            <option value="disabled">Disabled</option>
+            <option value="darken">Blend (darken)</option>
+            <option value="lighten">Blend (lighten)</option>
+            <option value="color">Blend (color)</option>
+        </select>
+        <input id="slashescolor" type="color">
+    </div>
+    
+    <div  class="toolbox--section">
+        <label>Cloak :</label>
+        <br>
+        Cloak Type :
+        <select name="sm" id="cloaktype">
+            <option value="default">default</option>
+            <option value="generic">Generic</option>
+        </select>
+        <br>
+        Colorize Texture:
+        <select name="clcm" id="enableCloak">
+            <option value="disabled">Disabled</option>
+            <option value="multiply">Blend (multiply)</option>
+            <option value="lighten">Blend (lighten)</option>
+            <option value="color">Blend (color)</option>
+        </select>
+        <input id="cloakcolor" type="color">
+    </div>
+
+    <br>
+    <button onclick="render()">Generate Skin</button>
+
+</div>
+
+<div class="checkerboard">
+    <canvas id="outcanvas" width="4096" height="4096" style="width:1000px;height:1000px;"></canvas>
+</div>
+
+<div style="display:none;">
+    <canvas id="slashmaskcanvas" width="4096" height="4096" style="width:1000px;height:1000px;"></canvas>
+    <canvas id="slashcanvas" width="4096" height="4096" style="width:1000px;height:1000px;"></canvas>
+    
+    <canvas id="cloakmaskcanvas" width="4096" height="4096" style="width:1000px;height:1000px;"></canvas>
+    <canvas id="cloakcanvas" width="4096" height="4096" style="width:1000px;height:1000px;"></canvas>
+
+    
+    <img id="default_knight" src="./default_knight.png">
+    <img id="slashmask" src="./slashmaskinv.png">
+    <img id="cloakmaskgeneric" src="./slashmask.png">
+    <img id="cloakmaskdefault" src="./cloakmask.png">
+    <img id="demo">
+</div>
+<script>
+    var base = document.getElementById('default_knight');
+    var slashmask = document.getElementById('slashmask');
+    var cloakmaskGeneric = document.getElementById('cloakmaskgeneric');
+    var cloakmaskDefault = document.getElementById('cloakmaskdefault');
+
+    var demo = document.getElementById('demo');
+    var slashesModeEl = document.getElementById('slashesmode');
+    var slashesColorEl = document.getElementById('slashescolor');
+    var slashesColorizeEl = document.getElementById('enablecolorize');
+
+    var slashesMode,slashesColor;
+    slashesColorEl.addEventListener("change",function(e){
+        slashesColor = e.target.value;
+    });
+
+    var cloakColorEl = document.getElementById('cloakcolor');
+    var cloakColor;
+    cloakColorEl.addEventListener("change",function(e){
+        cloakColor = e.target.value;
+    });
+
+    const canvas = document.getElementById('outcanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const smcanvas = document.getElementById('slashmaskcanvas');
+    const smctx = smcanvas.getContext('2d');
+
+    const scanvas = document.getElementById('slashcanvas');
+    const sctx = scanvas.getContext('2d');
+   
+    const cmcanvas = document.getElementById('cloakmaskcanvas');
+    const cmctx = cmcanvas.getContext('2d');
+
+    const ccanvas = document.getElementById('cloakcanvas');
+    const cctx = ccanvas.getContext('2d');
+
+    function applyBlendModeWithAlpha(ctx,base,image,blend){
+        ctx.save()
+        if(blend != "copy"){
+            ctx.drawImage(base, 0, 0, canvas.width,canvas.height);
+        }
+        ctx.globalCompositeOperation = blend
+        ctx.drawImage(image, 0, 0, canvas.width,canvas.height);
+        if(blend != "copy"){
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.drawImage(base, 0, 0, canvas.width,canvas.height);
+        }
+        ctx.restore()
+    }
+
+    function colorize(ctx,img,color,blend){
+        ctx.save()
+        ctx.globalCompositeOperation = blend;
+        ctx.fillStyle = color;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.globalCompositeOperation = 'destination-in';
+        ctx.drawImage(img, 0, 0, canvas.width,canvas.height);
+        ctx.restore()
+    }
+
+    function getColorIndicesForCoord(x, y, width) {
+        var red = y * (width * 4) + x * 4;
+        return {r:red, g:red + 1, b:red + 2, a:red + 3};
+    }
+
+    function maskedCopy(image,mask,base){
+        for(var i = 0 ; i < base.width ; i++){
+            for(var j = 0 ; j < base.height ; j++){
+               let coords = getColorIndicesForCoord(i,j,base.width);
+               let imgOpacity = mask.data[coords.a]/255;
+               let baseOpacity = 1 - imgOpacity;
+               if(mask.data[coords.a] > 0){
+                    base.data[coords.r] = (base.data[coords.r] * baseOpacity)+(image.data[coords.r] * imgOpacity);
+                    base.data[coords.g] = (base.data[coords.g] * baseOpacity)+(image.data[coords.g] * imgOpacity);
+                    base.data[coords.b] = (base.data[coords.b] * baseOpacity)+(image.data[coords.b] * imgOpacity);
+                    base.data[coords.a] = (base.data[coords.a] * baseOpacity)+(image.data[coords.a] * imgOpacity);
+                }
+            }
+        }
+    }
+
+    function render(){
+        slashesMode = slashesModeEl.value;
+        
+        ctx.drawImage(base,0,0,canvas.width,canvas.height);
+        smctx.drawImage(slashmask,0,0,canvas.width,canvas.height);
+        cmctx.drawImage(cloaktype.value === "default" ? cloakmaskDefault : cloakmaskGeneric ,0,0,canvas.width,canvas.height);
+
+        let baseData = ctx.getImageData(0,0,canvas.width,canvas.height);
+        let slashMaskData = smctx.getImageData(0,0,smcanvas.width,smcanvas.height);
+
+        applyBlendModeWithAlpha(sctx,base,demo,slashesMode);
+        if(enablecolorize.value != "disabled"){
+            colorize(sctx,slashesMode === "copy" ? demo : base,slashesColor,enablecolorize.value);
+        }
+        let slashData = sctx.getImageData(0,0,scanvas.width,scanvas.height);
+        maskedCopy(slashData,slashMaskData,baseData);
+        ctx.putImageData(baseData,0,0);
+
+        baseData = ctx.getImageData(0,0,canvas.width,canvas.height);
+        let cloakMaskData = cmctx.getImageData(0,0,smcanvas.width,smcanvas.height);
+        if(enableCloak.value != "disabled"){
+            cctx.putImageData(baseData,0,0);
+            colorize(cctx,base,cloakColor,enableCloak.value)
+        } 
+        let cloakData = cctx.getImageData(0,0,scanvas.width,scanvas.height);
+        maskedCopy(cloakData,cloakMaskData,baseData);
+        ctx.putImageData(baseData,0,0);
+    }
+
+    function fileChangeHandler(img) {
+        return function (){
+            const reader = new FileReader();
+            reader.onload = (e) => { img.src = e.target.result; };
+            reader.readAsDataURL(this.files[0]);
+        }
+    }
+    function bindInputToImg(input,img){
+        input.addEventListener("change", fileChangeHandler(img), false);
+    }
+
+    bindInputToImg(document.getElementById("baseSkin"),base);
+    bindInputToImg(document.getElementById("slashes"),demo);
+    
+
+    function init(){
+        ctx.drawImage(base,0,0);
+    }
+    base.onload = init;
+</script>
