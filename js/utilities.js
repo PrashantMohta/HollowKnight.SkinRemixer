@@ -1,10 +1,10 @@
-const BLANK_KNIGHT = "/assets/blank_knight.png";
-const DEFAULT_KNIGHT = "/assets/default_knight.png";
-const SLASH_MASK = "/assets/slash_mask.png";
-const CLOAK_MASK_GENERIC = "/assets/cloak_mask_generic.png";
-const CLOAK_MASK_DEFAULT = "/assets/cloak_mask_default.png";
-const EYE_WHITE = "/assets/eye_white.png"; 
-const EYE_DEFAULT =  "/assets/eye.png";
+const BLANK_KNIGHT = "./assets/blank_knight.png";
+const DEFAULT_KNIGHT = "./assets/default_knight.png";
+const SLASH_MASK = "./assets/slash_mask.png";
+const CLOAK_MASK_GENERIC = "./assets/cloak_mask_generic.png";
+const CLOAK_MASK_DEFAULT = "./assets/cloak_mask_default.png";
+const EYE_WHITE = "./assets/eye_white.png"; 
+const EYE_DEFAULT =  "./assets/eye.png";
 const EYE = "eye";
 const BASE = 'base';
 const SLASH = 'slash';
@@ -143,4 +143,19 @@ function drawImgOnCorners(ctx,img,corners){
                 Math.ceil(Math.max(step, Math.abs(p1.y - p4.y), Math.abs(p2.y - p3.y))) + 1)
         }
     }
+}
+
+function flipSprite(img){
+    let flippedimg = new ImageData(img.height,img.width);
+    for(y = 0; y <= img.height; y += 1) {
+        for(x = 0; x <= img.width; x += 1) {
+            let origcoords = getColorIndicesForCoord(x,y,img.width);
+            let flippedcoords = getColorIndicesForCoord(img.height-y,img.width-x,img.height);
+            flippedimg.data[flippedcoords.r] = img.data[origcoords.r];
+            flippedimg.data[flippedcoords.g] = img.data[origcoords.g];
+            flippedimg.data[flippedcoords.b] = img.data[origcoords.b];
+            flippedimg.data[flippedcoords.a] = img.data[origcoords.a];
+        }
+    }
+    return flippedimg;
 }

@@ -2,7 +2,7 @@
     <head>
         <title>Hollow Knight Skin Remixer</title>
         <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
-        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="./style.css">
     </head>
     <body>
         <h3>Hollow Knight Skin Remixer</h3>
@@ -10,6 +10,8 @@
             <div class="checkerboard">
                 <canvas id="outcanvas" width="4096" height="4096" style="width:1024px;height:1024px;"></canvas>
             </div>
+            <canvas id="animcanvas" width="200" height="200" style="position:fixed;background:rgb(163, 136, 190);left:0; top:0;width:200px;height:200px;"></canvas>
+
             <div class="hidden">
             </div>
         </div>
@@ -79,7 +81,7 @@
             <button onclick="generate()">Generate Skin</button>
         
         </div>
-        <script src="/js/utilities.js"></script>
-        <script src="/js/index.js"></script>
+        <script src="./js/utilities.js"></script>
+        <script src="./js/index.js"></script>
     </body>
 </html>

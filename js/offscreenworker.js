@@ -1,4 +1,4 @@
-importScripts('data.js','utilities.js');
+importScripts('./data.js','./utilities.js');
 
 let images = {};
 let imageData = {};
