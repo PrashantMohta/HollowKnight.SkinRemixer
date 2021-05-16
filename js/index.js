@@ -133,7 +133,8 @@ function renderSpriteBoxes(){
                     frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
                 }
 
-                animctx.putImageData(frame.flippedsprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
+                //animctx.putImageData(frame.flippedsprite,10+spriteData.syr[frame.i],10+spriteData.sxr[frame.i]);
+                animctx.putImageData(frame.flippedsprite,animcanvas.width - 10  - (spriteData.swidth[frame.i]  ),animcanvas.height  - 10 - (spriteData.sheight[frame.i]  ));
 
                 //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
 
@@ -143,7 +144,7 @@ function renderSpriteBoxes(){
                     frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
                 }
                 //animctx.save();
-                animctx.putImageData(frame.sprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
+                animctx.putImageData(frame.sprite,animcanvas.width  - 10 - (spriteData.swidth[frame.i]  ),animcanvas.height   - 10 - (spriteData.sheight[frame.i] ));
                 //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
                 //animctx.restore();
             }
