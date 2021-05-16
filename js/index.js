@@ -61,15 +61,57 @@ let currentAnimation;
 let currentAnimationIndex = 0;
 
 function setDropdownValues(dropdown,allAnimation){
-    let first = true;
     for(let key in allAnimation){
         //skip others for now
         if(allAnimation[key].collection !== "Knight") continue;
-        let op = new Option(allAnimation[key].name, allAnimation[key].name, false, first);
+        let op = new Option(allAnimation[key].name, allAnimation[key].name, false, false);
         dropdown.appendChild(op);
-        first = false;
     }
 }
+
+function setDropdown(){
+    if(!dropdownSet){
+        setDropdownValues(animationSelector,allAnimation)
+        dropdownSet = true;
+    }
+}
+
+function animateSprites(){
+    if(animationSelector.value == "disabled") return;
+    if(currentAnimation){
+        animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
+        
+        let frame = anim[allAnimation[currentAnimation].frames[currentAnimationIndex]];
+        
+
+        if(frame.flipped){
+            if(!frame.flippedsprite){
+                //ctx.strokeStyle = 'yellow';
+                //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+
+                frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
+            }
+
+            //animctx.putImageData(frame.flippedsprite,10+spriteData.syr[frame.i],10+spriteData.sxr[frame.i]);
+            animctx.putImageData(frame.flippedsprite,animcanvas.width - 10  - (spriteData.swidth[frame.i]  ),animcanvas.height  - 10 - (spriteData.sheight[frame.i]  ));
+
+            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+
+        } else {
+
+            if(!frame.sprite){
+                frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
+            }
+            //animctx.save();
+            animctx.putImageData(frame.sprite,animcanvas.width  - 10 - (spriteData.swidth[frame.i]  ),animcanvas.height   - 10 - (spriteData.sheight[frame.i] ));
+            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+            //animctx.restore();
+        }
+        currentAnimationIndex+=1;
+        if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ currentAnimationIndex = 0}
+    }
+}
+
 function renderSpriteBoxes(){
     if(!spriteData){
         fetch('./assets/spriteInfo.json').then( res => res.json()).then(j => {spriteData = j;})
@@ -110,47 +152,9 @@ function renderSpriteBoxes(){
         spriteBoxesRendered = new Image();
         spriteBoxesRendered.src = canvas.toDataURL();
     } else {
-        if(!dropdownSet){
-            setDropdownValues(animationSelector,allAnimation)
-            setTimeout(()=>{
-                currentAnimation = spriteData.spath[0].split("/")[1];
-                currentAnimationIndex = 0;        
-            },1000);
-            dropdownSet = true;
-        }
+        setDropdown();
         ctx.drawImage(spriteBoxesRendered,0,0);
-        if(currentAnimation){
-            animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
-            
-            let frame = anim[allAnimation[currentAnimation].frames[currentAnimationIndex]];
-            
-
-            if(frame.flipped){
-                if(!frame.flippedsprite){
-                    //ctx.strokeStyle = 'yellow';
-                    //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
-
-                    frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
-                }
-
-                //animctx.putImageData(frame.flippedsprite,10+spriteData.syr[frame.i],10+spriteData.sxr[frame.i]);
-                animctx.putImageData(frame.flippedsprite,animcanvas.width - 10  - (spriteData.swidth[frame.i]  ),animcanvas.height  - 10 - (spriteData.sheight[frame.i]  ));
-
-                //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
-
-            } else {
-
-                if(!frame.sprite){
-                    frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
-                }
-                //animctx.save();
-                animctx.putImageData(frame.sprite,animcanvas.width  - 10 - (spriteData.swidth[frame.i]  ),animcanvas.height   - 10 - (spriteData.sheight[frame.i] ));
-                //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
-                //animctx.restore();
-            }
-            currentAnimationIndex+=1;
-            if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ currentAnimationIndex = 0}
-        }
+        animateSprites();
     }
 
 }
@@ -174,6 +178,9 @@ function setupImages(){
 
     images[EYE] = new Image();
     images[EYE].onload = ()=>{ 
+        if(images[EYE].width > 17*2 || images[EYE].height > 22*2){
+            images[EYE].src = constrainToSize(images[EYE],17*2,22*2); // reduce resolution to max of 2x expected resolution
+        }
         createImageBitmap(images[EYE]).then(bmp => {transferImageToWorker(EYE,bmp)});  
     }
     images[EYE].src = EYE_DEFAULT;
@@ -191,6 +198,7 @@ function init(){
     setupImages();
     rafRender(renderFrame,TARGET_FRAME_RATE);
     animationSelector.onchange = function(){
+        if(animationSelector.value == "disabled") return;
         currentAnimation = animationSelector.value;
         currentAnimationIndex = 0;
     }
@@ -206,15 +214,32 @@ worker.onmessage = function (e){
         spriteBoxesRendered = false;
     }
     if(e.data.event === "progress"){
-        console.log("made progress : ",`${e.data.data.stage}: ${e.data.data.percent}%` )
+        showUpdateProgress(e.data.data.stage,Math.round(e.data.data.percent));
     }
 }
 
-populateImageMap([DEFAULT_KNIGHT,SLASH_MASK,CLOAK_MASK_DEFAULT,CLOAK_MASK_GENERIC,EYE_DEFAULT,BLANK_KNIGHT]).then((imageMap)=>{
+let lastStage;
+let log = "";
+function showUpdateProgress(stage,percent){
+    if(stage === "done"){
+        // hide modal in 1s 
+        setTimeout( () => {document.querySelector(`#progress-modal`).classList.add("hidden")},1000);
+        return;
+    }
+    document.querySelector(`#progress-modal`).classList.remove("hidden");
+    if (lastStage != stage){
+        log = `${stage} : ${percent}%`;
+        document.querySelector(`#progress-text`).innerText = log;
+        document.querySelector(`#progress`).value = percent;
+    }
+}
+
+populateImageMap([DEFAULT_KNIGHT,SLASH_MASK,CLOAK_MASK_DEFAULT,CLOAK_MASK_GENERIC,EYE_DEFAULT,BLANK_KNIGHT],showUpdateProgress).then((imageMap)=>{
     images = imageMap;
     for(let image in images){
         createImageBitmap(images[image]).then(bmp => {transferImageToWorker(image,bmp)});  
     }
+    showUpdateProgress("done",100);
     init();
 }).catch(console.error);
 

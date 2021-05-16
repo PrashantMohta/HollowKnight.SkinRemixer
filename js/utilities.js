@@ -18,14 +18,22 @@ function loadImage(url){
     })
 }
 
-function populateImageMap(files){
+function populateImageMap(files,progress){
+    if(typeof progress == "function"){
+        progress("loading Images",0)
+    }
     return new Promise(function(resolve,reject){
         let images = {};
         let loading = 0;
+        let loaded = 0;
         files.forEach(file => {
             loading +=1 ;
             loadImage(file).then( img => {
+                loaded +=1 ;
                 images[file] = img;
+                if(typeof progress == "function"){
+                    progress("loading Images",Math.round((100 * loaded)/files.length))
+                }
                 loading -=1 ;
                 if(loading === 0){
                     return resolve(images);
@@ -158,4 +166,14 @@ function flipSprite(img){
         }
     }
     return flippedimg;
+}
+
+function constrainToSize(img,width,height){
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img,0,0,width,height);
+    img = canvas.toDataURL();
+    return img;
 }

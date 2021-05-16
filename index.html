@@ -6,6 +6,15 @@
     </head>
     <body>
         <h3>Hollow Knight Skin Remixer</h3>
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-body">
+                <div class="pure-g">
+                    <div class="pure-u-1-1"><div id="progress-text"> Progress </div></div>
+                    <div class="pure-u-1-1"><progress id="progress" value="0" max="100"></progress></div>
+                    <div class="pure-u-1-1"><div class="progress-hint"> The bar may look like it is stuck at some points, but it is probably still working in the background</div></div>
+                </div>
+            </div>
+        </div>  
         <div class="toolbox--section canvas_container">
             <div class="checkerboard">
                 <div class="checkerboard-container">
@@ -95,6 +104,7 @@
                     </div>
                     Animation : 
                     <select name="ase" id="animationselector">
+                        <option value="disabled">Disabled</option>
                     </select>
                 </details>
             </details>

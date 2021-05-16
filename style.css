@@ -70,3 +70,47 @@ body{
 .checkerboard .checkerboard-container canvas {
     background: #5f6da085;
 }
+.modal-body{
+    width: 300px;
+    height: 150px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 10050;
+    background: #292C33;
+    border-radius: 5px;
+    padding:5px;
+    text-align:center;
+}
+
+.modal{
+    position: fixed;
+    font-size: 12px;
+    z-index: 10050;
+}
+.modal:before{
+    content:'';
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: -1;
+    background: #a9b5d461;
+    backdrop-filter: blur(8px);
+}
+
+#progress-text{
+    font-size: 15px;
+    padding: 20px;
+}
+
+.progress-hint{
+    padding:20px;
+}
+
+progress::-moz-progress-bar { background: #A9B5D4; }
+progress::-webkit-progress-value { background: #A9B5D4; }
+progress { color: #A9B5D4; }

@@ -103,4 +103,6 @@ function generateSkin(options){
     }
     //send response
     postMessage({event:'output',data:baseData})
+    postMessage({event:'progress',data:{stage:'done',percent:100}});
+
 }
