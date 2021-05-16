@@ -10,7 +10,7 @@ let animcanvas = document.querySelector("#animcanvas");
 let animctx = animcanvas.getContext('2d');
 
 
-let worker = new Worker('/js/offscreenworker.js');
+let worker = new Worker('./js/offscreenworker.js');
 
 let slashMode = document.querySelector('#slashesmode');
 let slashColor = document.querySelector('#slashescolor');
@@ -56,7 +56,7 @@ let anim ,index=0;
 
 function renderSpriteBoxes(){
     if(!spriteData){
-        fetch('./spriteInfo.json').then( res => res.json()).then(j => {spriteData = j;})
+        fetch('./assets/spriteInfo.json').then( res => res.json()).then(j => {spriteData = j;})
         return;
     }
     if(!spriteBoxesRendered){
