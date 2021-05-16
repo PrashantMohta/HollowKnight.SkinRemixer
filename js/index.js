@@ -98,7 +98,7 @@ function animateSprites(){
             }
 
             //animctx.putImageData(frame.flippedsprite,10+spriteData.syr[frame.i],10+spriteData.sxr[frame.i]);
-            animctx.putImageData(frame.flippedsprite,animcanvas.width - 10  - (spriteData.swidth[frame.i] + spriteData.sxr[frame.i]),animcanvas.height  - 10 - (spriteData.sheight[frame.i]  + spriteData.syr[frame.i]));
+            animctx.putImageData(frame.flippedsprite, 10 + spriteData.sxr[frame.i],animcanvas.height  - 10 - (spriteData.sheight[frame.i]  + spriteData.syr[frame.i]));
 
             //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
 
@@ -108,7 +108,7 @@ function animateSprites(){
                 frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
             }
             //animctx.save();
-            animctx.putImageData(frame.sprite,animcanvas.width  - 10 - (spriteData.swidth[frame.i]  + spriteData.sxr[frame.i]),animcanvas.height   - 10 - (spriteData.sheight[frame.i] + spriteData.syr[frame.i]));
+            animctx.putImageData(frame.sprite, 10 + spriteData.sxr[frame.i],animcanvas.height   - 10 - (spriteData.sheight[frame.i] + spriteData.syr[frame.i]));
             //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
             //animctx.restore();
         }
@@ -136,7 +136,7 @@ function renderSpriteBoxes(){
             let curName = spriteData.spath[i].split("/")[1];
             if(lastName != curName){
                 animationIndex += 1;
-                allAnimation[curName] = allAnimation[curName] || ({name:curName,collection:spriteData.scollectionname[i],frames:[]});
+                allAnimation[curName] = allAnimation[curName] || ({name:curName,collection:spriteData.scollectionname[i],mw:0,mh:0,frames:[]});
                 lastName = curName;
             }
             allAnimation[curName].frames.push(i);
@@ -149,6 +149,8 @@ function renderSpriteBoxes(){
                 //ctx.strokeStyle = 'green';
                 frame = {i:i,flipped:false,x:spriteData.sx[i], y:canvas.height - spriteData.sy[i], w:spriteData.swidth[i],h: - spriteData.sheight[i]}
             }
+            allAnimation[curName].mh = Math.max(allAnimation[curName].mh,Math.abs(frame.h + spriteData.syr[i]))
+            allAnimation[curName].mw = Math.max(allAnimation[curName].mw,Math.abs(frame.w + spriteData.sxr[i]))
             /*if(curName.startsWith("145")){
                 console.log(i)
                 ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
@@ -206,6 +208,9 @@ function init(){
     animationSelector.onchange = function(){
         if(animationSelector.value == "disabled") return;
         currentAnimation = animationSelector.value;
+        let size = Math.max(allAnimation[currentAnimation].mw + 20,allAnimation[currentAnimation].mh + 20)
+        animcanvas.width = size;
+        animcanvas.height = size;
         currentAnimationIndex = 0;
     }
 }
