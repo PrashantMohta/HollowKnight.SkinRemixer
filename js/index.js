@@ -23,6 +23,8 @@ let cloakColorMode = document.querySelector('#cloakcolormode');
 let eyeMode = document.querySelector('#eyemode');
 let eyeClip = document.querySelector('#eyeclip');
 
+let animationSelector = document.querySelector("#animationselector");
+
 function getFormState(){
     return {
         slashes:{
@@ -53,7 +55,21 @@ function generate(){
 let spriteData;
 let spriteBoxesRendered;
 let anim ,index=0;
+let allAnimation;
+let dropdownSet = false;
+let currentAnimation;
+let currentAnimationIndex = 0;
 
+function setDropdownValues(dropdown,allAnimation){
+    let first = true;
+    for(let key in allAnimation){
+        //skip others for now
+        if(allAnimation[key].collection !== "Knight") continue;
+        let op = new Option(allAnimation[key].name, allAnimation[key].name, false, first);
+        dropdown.appendChild(op);
+        first = false;
+    }
+}
 function renderSpriteBoxes(){
     if(!spriteData){
         fetch('./assets/spriteInfo.json').then( res => res.json()).then(j => {spriteData = j;})
@@ -61,49 +77,79 @@ function renderSpriteBoxes(){
     }
     if(!spriteBoxesRendered){
         anim = [];
+        allAnimation = {};
+        animationIndex = -1;
+        let lastName;
+
         ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.lineWidth = 3;
-     for(let i = 0; i < ( 9 || spriteData.sid.length) ; i++){
-        if(spriteData.scollectionname[i] !== "Knight") continue;
+     for(let i = 0; i <  spriteData.sid.length ; i++){
+        //if(spriteData.scollectionname[i] !== "Knight") continue;
             let frame = {};
+            let curName = spriteData.spath[i].split("/")[1];
+            if(lastName != curName){
+                animationIndex += 1;
+                allAnimation[curName] = allAnimation[curName] || ({name:curName,collection:spriteData.scollectionname[i],frames:[]});
+                lastName = curName;
+            }
+            allAnimation[curName].frames.push(i);
+
             if(spriteData.sfilpped[i]) {
-                ctx.strokeStyle = 'red';
+                //ctx.strokeStyle = 'red';
                 //frame = {i:i,flipped:true,x:spriteData.sx[i] +spriteData.sheight[i] ,y:canvas.height - spriteData.sy[i] ,w: - spriteData.sheight[i],h:- spriteData.swidth[i]};
                 frame = {i:i,flipped:true,x:spriteData.sx[i] ,y:canvas.height - spriteData.sy[i] ,w:spriteData.sheight[i],h:- spriteData.swidth[i]};
             } else {
-                ctx.strokeStyle = 'green';
+                //ctx.strokeStyle = 'green';
                 frame = {i:i,flipped:false,x:spriteData.sx[i], y:canvas.height - spriteData.sy[i], w:spriteData.swidth[i],h: - spriteData.sheight[i]}
             }
-            //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+            //if(curName.startsWith("101")){
+                //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+            //}
             anim.push(frame)
         }
         spriteBoxesRendered = new Image();
         spriteBoxesRendered.src = canvas.toDataURL();
     } else {
-        ctx.drawImage(spriteBoxesRendered,0,0);
-        animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
-        let frame = anim[index];
-        
-
-        if(frame.flipped){
-            if(!frame.flippedsprite){
-                frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
-            }
-
-            animctx.putImageData(frame.flippedsprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
-            //animctx.save();
-            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
-            //animctx.restore();
-        } else {
-
-            if(!frame.sprite){
-                frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
-            }
-            animctx.putImageData(frame.sprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
-            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+        if(!dropdownSet){
+            setDropdownValues(animationSelector,allAnimation)
+            setTimeout(()=>{
+                currentAnimation = spriteData.spath[0].split("/")[1];
+                currentAnimationIndex = 0;        
+            },1000);
+            dropdownSet = true;
         }
-        index+=1;
-        if(index == 8){ index = 0}
+        ctx.drawImage(spriteBoxesRendered,0,0);
+        if(currentAnimation){
+            animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
+            
+            let frame = anim[allAnimation[currentAnimation].frames[currentAnimationIndex]];
+            
+
+            if(frame.flipped){
+                if(!frame.flippedsprite){
+                    //ctx.strokeStyle = 'yellow';
+                    //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+
+                    frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
+                }
+
+                animctx.putImageData(frame.flippedsprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
+
+                //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+
+            } else {
+
+                if(!frame.sprite){
+                    frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
+                }
+                //animctx.save();
+                animctx.putImageData(frame.sprite,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i]);
+                //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+                //animctx.restore();
+            }
+            currentAnimationIndex+=1;
+            if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ currentAnimationIndex = 0}
+        }
     }
 
 }
@@ -143,6 +189,10 @@ function setupImages(){
 function init(){
     setupImages();
     rafRender(renderFrame,TARGET_FRAME_RATE);
+    animationSelector.onchange = function(){
+        currentAnimation = animationSelector.value;
+        currentAnimationIndex = 0;
+    }
 }
 
 worker.onmessage = function (e){

@@ -6,79 +6,101 @@
     </head>
     <body>
         <h3>Hollow Knight Skin Remixer</h3>
-        <div class="canvas_container">
+        <div class="toolbox--section canvas_container">
             <div class="checkerboard">
-                <canvas id="outcanvas" width="4096" height="4096" style="width:1024px;height:1024px;"></canvas>
+                <div class="checkerboard-container">
+                    <canvas class="checkerboard-container" id="outcanvas" width="4096" height="4096" style="width:1024px;height:1024px;"></canvas>
+                </div>
             </div>
-            <canvas id="animcanvas" width="200" height="200" style="position:fixed;background:rgb(163, 136, 190);left:0; top:0;width:200px;height:200px;"></canvas>
 
             <div class="hidden">
             </div>
         </div>
         <div class="tools_container">
-            <div class="toolbox--section">
-                <label>Base Skin :</label> <input id="baseSkin" type="file" accept=".png,.jpg,.jpeg">
-            </div>
-        
-            <div  class="toolbox--section">
-                <label>Slash Effects :</label>
-                <br>
-                <label>Texture :</label> 
-                <input id="slashes" type="file" accept=".png,.jpg,.jpeg">
-                <br>
-                Texture Mode :
-                <select name="sm" id="slashesmode">
-                    <option value="disabled">Disabled</option>
-                    <option value="copy">Replace</option>
-                    <option value="darken">Blend (darken)</option>
-                    <option value="lighten">Blend (lighten)</option>
-                    <option value="color">Blend (color)</option>
-                </select>
-                <br>
-                Colorize Texture:
-                <select name="cm" id="slashescolormode">
-                    <option value="disabled">Disabled</option>
-                    <option value="darken">Blend (darken)</option>
-                    <option value="lighten">Blend (lighten)</option>
-                    <option value="color">Blend (color)</option>
-                </select>
-                <input id="slashescolor" type="color">
-            </div>
             
-            <div  class="toolbox--section">
-                <label>Cloak :</label>
-                <br>
-                Cloak Type :
-                <select name="sm" id="cloakmode">
-                    <option value="disabled">Disabled</option>
-                    <option value="default">Default</option>
-                    <option value="generic">Generic</option>
-                </select>
-                <br>
-                Colorize Texture:
-                <select name="clcm" id="cloakcolormode">
-                    <option value="color">Blend (color)</option>
-                    <option value="multiply">Blend (multiply)</option>
-                    <option value="lighten">Blend (lighten)</option>
-                </select>
-                <input id="cloakcolor" type="color">
-            </div>
-            <div  class="toolbox--section">
-                <label>EYE :</label>
-                <br>
-                Mode : <select name="eme" id="eyemode">
-                    <option value="disabled">Disabled</option>
-                    <option value="enabled">Enabled</option>
-                </select>
-                Image : <input type="file" id="eyes"  accept=".png,.jpg,.jpeg">
-                Clip : 
-                <select name="ece" id="eyeclip">
-                    <option value="disabled">Disabled</option>
-                    <option value="enabled">Enabled</option>
-                </select>
-            </div>
+            <details class="toolbox--section" open>
+                <summary>Main Tools</summary>
+                <details class="toolbox--section">
+                    <summary class="toolbox--button toolbox--section--header">Base Skin :</summary>
+                    <input id="baseSkin" type="file" accept=".png,.jpg,.jpeg">
+                </details>
+            
+                <details  class="toolbox--section">
+                    <summary class="toolbox--button toolbox--section--header">Slash Effects :</summary>
+                    <br>
+                    <label>Texture :</label> 
+                    <input id="slashes" type="file" accept=".png,.jpg,.jpeg">
+                    <br>
+                    Texture Mode :
+                    <select name="sm" id="slashesmode">
+                        <option value="disabled">Disabled</option>
+                        <option value="copy">Replace</option>
+                        <option value="darken">Blend (darken)</option>
+                        <option value="lighten">Blend (lighten)</option>
+                        <option value="color">Blend (color)</option>
+                    </select>
+                    <br>
+                    Colorize Texture:
+                    <select name="cm" id="slashescolormode">
+                        <option value="disabled">Disabled</option>
+                        <option value="darken">Blend (darken)</option>
+                        <option value="lighten">Blend (lighten)</option>
+                        <option value="color">Blend (color)</option>
+                    </select>
+                    <input id="slashescolor" type="color">
+                </details>
+                
+                <details  class="toolbox--section">
+                    <summary class="toolbox--button toolbox--section--header">Cloak :</summary>
+                    <br>
+                    Cloak Type :
+                    <select name="sm" id="cloakmode">
+                        <option value="disabled">Disabled</option>
+                        <option value="default">Default</option>
+                        <option value="generic">Generic</option>
+                    </select>
+                    <br>
+                    Colorize Texture:
+                    <select name="clcm" id="cloakcolormode">
+                        <option value="color">Blend (color)</option>
+                        <option value="multiply">Blend (multiply)</option>
+                        <option value="lighten">Blend (lighten)</option>
+                    </select>
+                    <input id="cloakcolor" type="color">
+                </details>
+
+                <details  class="toolbox--section">
+                    <summary class="toolbox--button toolbox--section--header">EYE :</summary>
+                    <br>
+                    Mode : <select name="eme" id="eyemode">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled">Enabled</option>
+                    </select>
+                    Image : <input type="file" id="eyes"  accept=".png,.jpg,.jpeg">
+                    Clip : 
+                    <select name="ece" id="eyeclip">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled">Enabled</option>
+                    </select>
+                </details>
+            </details>
+            <details class="toolbox--section" >
+                <summary>Advanced Tools</summary>
+                <details class="toolbox--section" open>
+                    <summary class="toolbox--button toolbox--section--header">Animated Preview</summary>
+                    <div class="checkerboard">
+                        <div class="checkerboard-container">
+                            <canvas id="animcanvas" width="400" height="400" style="width:250px;height:250px;"></canvas>
+                        </div>
+                    </div>
+                    Animation : 
+                    <select name="ase" id="animationselector">
+                    </select>
+                </details>
+            </details>
             <br>
-            <button onclick="generate()">Generate Skin</button>
+
+            <button class="toolbox--button pure-button "onclick="generate()">Generate Skin</button>
         
         </div>
         <script src="./js/utilities.js"></script>
