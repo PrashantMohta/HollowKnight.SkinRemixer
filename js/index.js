@@ -80,6 +80,7 @@ function setDropdown(){
     }
 }
 
+let spriteData = {};
 let lastFrameTime = Date.now();
 function animateSprites(){
     if(!allAnimation){
@@ -93,21 +94,21 @@ function animateSprites(){
         animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
         
         let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
-
+        if(!spriteData[frame]){spriteData[frame.i] = {}}
         if(frame.flipped){
-            if(!frame.flippedsprite){
+            if(!spriteData[frame.i].flippedsprite){
                 //ctx.strokeStyle = 'yellow';
                 //ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
-                frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h));
+                spriteData[frame.i].flippedsprite = flipSprite(ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h));
             }
-            animctx.putImageData(frame.flippedsprite, 10 + frame.xr,animcanvas.height  - 10 - (frame.sh  + frame.yr));
+            animctx.putImageData(spriteData[frame.i].flippedsprite, 10 + frame.xr,animcanvas.height  - 10 - (frame.sh  + frame.yr));
 
         } else {
 
-            if(!frame.sprite){
-                frame.sprite = ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+            if(!spriteData[frame.i].sprite){
+                spriteData[frame.i].sprite = ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
             }
-            animctx.putImageData(frame.sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
+            animctx.putImageData(spriteData[frame.i].sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
 
         }
         currentAnimationIndex+=1;
@@ -214,6 +215,7 @@ worker.onmessage = function (e){
         renderOutData = true;
         outData = e.data.data;
         spriteBoxesRendered = false;
+        spriteData = {};
     }
     if(e.data.event === "progress"){
         showUpdateProgress(e.data.data.stage,Math.round(e.data.data.percent));
