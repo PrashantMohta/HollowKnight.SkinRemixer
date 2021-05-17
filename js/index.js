@@ -10,7 +10,6 @@ let animcanvas = document.querySelector("#animcanvas");
 let animctx = animcanvas.getContext('2d');
 
 
-let worker = new Worker('./js/offscreenworker.js');
 
 let slashMode = document.querySelector('#slashesmode');
 let slashColor = document.querySelector('#slashescolor');
@@ -24,6 +23,7 @@ let eyeMode = document.querySelector('#eyemode');
 let eyeClip = document.querySelector('#eyeclip');
 
 let animationSelector = document.querySelector("#animationselector");
+
 
 function getFormState(){
     return {
@@ -205,6 +205,7 @@ function init(){
     }
 }
 
+let worker = getWorker('./js/offscreenworker.js','./js/');
 worker.onmessage = function (e){
     if(e.data.event === "ready"){
 
@@ -219,28 +220,20 @@ worker.onmessage = function (e){
     }
 }
 
-let lastStage;
-let log = "";
-function showUpdateProgress(stage,percent){
-    if(stage === "done"){
-        // hide modal in 1s 
-        setTimeout( () => {document.querySelector(`#progress-modal`).classList.add("hidden")},1000);
-        return;
-    }
-    document.querySelector(`#progress-modal`).classList.remove("hidden");
-    if (lastStage != stage){
-        log = `${stage} : ${percent}%`;
-        document.querySelector(`#progress-text`).innerText = log;
-        document.querySelector(`#progress`).value = percent;
-    }
-}
 
-populateImageMap([DEFAULT_KNIGHT,SLASH_MASK,CLOAK_MASK_DEFAULT,CLOAK_MASK_GENERIC,EYE_DEFAULT,BLANK_KNIGHT],showUpdateProgress).then((imageMap)=>{
-    images = imageMap;
-    for(let image in images){
-        createImageBitmap(images[image]).then(bmp => {transferImageToWorker(image,bmp)});  
+function loadPrerequisites(){ 
+    if(!worker.postMessage){
+        // if worker or worker hack has not loaded yet then dont start
+        return setTimeout(()=>{ loadPrerequisites() },500);
     }
-    showUpdateProgress("done",100);
-    init();
-}).catch(console.error);
+    populateImageMap([DEFAULT_KNIGHT,SLASH_MASK,CLOAK_MASK_DEFAULT,CLOAK_MASK_GENERIC,EYE_DEFAULT,BLANK_KNIGHT],showUpdateProgress).then((imageMap)=>{
+        images = imageMap;
+        for(let image in images){
+            createImageBitmap(images[image]).then(bmp => {transferImageToWorker(image,bmp)});  
+        }
+        showUpdateProgress("done",100);
+        init();
+    }).catch(console.error);
+}
+loadPrerequisites();
 

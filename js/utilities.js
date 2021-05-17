@@ -168,12 +168,81 @@ function flipSprite(img){
     return flippedimg;
 }
 
+
+
+function getNewCanvas(width,height){
+    let canvas;
+    if(self.OffscreenCanvas){
+        canvas = new OffscreenCanvas(width,height);
+    } else {
+        canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+    }
+    return canvas;
+}
+
+function getImageData(img){
+    const canvas = getNewCanvas(img.width,img.height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img,0,0);
+    let imageData = ctx.getImageData(0,0,img.width,img.height);
+    return imageData;
+}
+
 function constrainToSize(img,width,height){
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    const canvas = getNewCanvas(width,height);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img,0,0,width,height);
     img = canvas.toDataURL();
     return img;
+}
+
+
+
+let lastStage;
+function showUpdateProgress(stage,percent){
+    if(stage === "done"){
+        // hide modal in 1s 
+        setTimeout( () => {document.querySelector(`#progress-modal`).classList.add("hidden")},1000);
+        return;
+    }
+    document.querySelector(`#progress-modal`).classList.remove("hidden");
+    if (lastStage != stage){
+        let log = `${stage} : ${percent}%`;
+        document.querySelector(`#progress-text`).innerText = log;
+        document.querySelector(`#progress`).value = percent;
+    }
+}
+
+
+function doSomeMagicToRunWorkerCodeOnMainThread(src,baseSrc){
+    let worker = {
+        onmessage:()=>{ console.log("please override the onmessage handler")}
+    };
+    window.importScripts = (src)=>{ 
+        let script = document.createElement('script');
+        script.src = baseSrc+src;
+        document.body.appendChild(script);
+        //console.log("trying to import" + src,"importScripts does not exist on main thread")
+    }
+    window.shimmedWorkerPostMessage = (obj)=>{    worker.onmessage({data:obj});    }
+
+    let script = document.createElement('script');
+    script.src = src;
+    script.onload = ()=>{
+        worker.postMessage = (obj)=>{ self.hkoffscreenWorker.messageHandler({data:obj}) }
+    }
+    document.body.appendChild(script);
+
+    return worker;
+}
+function getWorker(src,baseSrc){
+    let worker;
+    if(window.OffscreenCanvas){
+        worker = new Worker(src);
+    } else {
+        worker = doSomeMagicToRunWorkerCodeOnMainThread(src,baseSrc);
+    }
+    return worker;
 }
