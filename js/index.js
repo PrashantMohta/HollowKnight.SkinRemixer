@@ -82,35 +82,72 @@ function setDropdown(){
 
 let spriteData = {};
 let lastFrameTime = Date.now();
+let playAnim = true;
+function prevSprite(){
+    if(!allAnimation){
+        if(!inflightAnimData){ getAnimData(); }
+        return 
+    }
+    if(currentAnimationIndex > 0){
+        currentAnimationIndex -=1;
+    } else {
+        currentAnimationIndex = allAnimation[currentAnimation].frames.length - 1
+    }
+    renderCurrentSprite();
+}
+function playPauseAnim(){
+    if(!allAnimation){
+        if(!inflightAnimData){ getAnimData(); }
+        return 
+    }
+    playAnim = !playAnim;
+}
+function nextSprite(){
+    if(!allAnimation){
+        if(!inflightAnimData){ getAnimData(); }
+        return 
+    }
+    if(currentAnimationIndex < allAnimation[currentAnimation].frames.length - 1){
+        currentAnimationIndex +=1;
+    } else {
+        currentAnimationIndex = 0;
+    }
+    renderCurrentSprite();
+}
+function renderCurrentSprite(){
+    
+    animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
+
+    let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
+    if(!spriteData[frame]){spriteData[frame.i] = {}}
+    if(frame.flipped){
+        if(!spriteData[frame.i].flippedsprite){
+            //ctx.strokeStyle = 'yellow';
+            //ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+            spriteData[frame.i].flippedsprite = flipSprite(ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h));
+        }
+        animctx.putImageData(spriteData[frame.i].flippedsprite, 10 + frame.xr,animcanvas.height  - 10 - (frame.sh  + frame.yr));
+
+    } else {
+
+        if(!spriteData[frame.i].sprite){
+            spriteData[frame.i].sprite = ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+        }
+        animctx.putImageData(spriteData[frame.i].sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
+
+    }
+}
 function animateSprites(){
     if(!allAnimation){
         if(!inflightAnimData){ getAnimData(); }
         return 
     }
-    if(animationSelector.value == "disabled") return;
+    if(animationSelector.value == "disabled" || !playAnim) return;
+
     let cur = Date.now();
     if(currentAnimation && cur - lastFrameTime > 1000/allAnimation[currentAnimation].fps){
         lastFrameTime = cur;
-        animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
-        
-        let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
-        if(!spriteData[frame]){spriteData[frame.i] = {}}
-        if(frame.flipped){
-            if(!spriteData[frame.i].flippedsprite){
-                //ctx.strokeStyle = 'yellow';
-                //ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
-                spriteData[frame.i].flippedsprite = flipSprite(ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h));
-            }
-            animctx.putImageData(spriteData[frame.i].flippedsprite, 10 + frame.xr,animcanvas.height  - 10 - (frame.sh  + frame.yr));
-
-        } else {
-
-            if(!spriteData[frame.i].sprite){
-                spriteData[frame.i].sprite = ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
-            }
-            animctx.putImageData(spriteData[frame.i].sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
-
-        }
+        renderCurrentSprite();
         currentAnimationIndex+=1;
         if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ 
             currentAnimationIndex = allAnimation[currentAnimation].loopStart;
@@ -199,6 +236,7 @@ function init(){
     animationSelector.onchange = function(){
         if(animationSelector.value == "disabled") return;
         currentAnimation = animationSelector.value;
+        playAnim = true;
         let size = Math.max(allAnimation[currentAnimation].mw + 20,allAnimation[currentAnimation].mh + 20)
         animcanvas.width = size;
         animcanvas.height = size;
