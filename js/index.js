@@ -52,9 +52,8 @@ function generate(){
     worker.postMessage({event:"generate",options:options});
 }
 
-let spriteData;
 let spriteBoxesRendered;
-let anim ,index=0;
+let index=0;
 let allAnimation;
 let dropdownSet = false;
 let currentAnimation;
@@ -81,90 +80,80 @@ function setDropdown(){
     }
 }
 
+let lastFrameTime = Date.now();
 function animateSprites(){
+    if(!allAnimation){
+        if(!inflightAnimData){ getAnimData(); }
+        return 
+    }
     if(animationSelector.value == "disabled") return;
-    if(currentAnimation){
+    let cur = Date.now();
+    if(currentAnimation && cur - lastFrameTime > 1000/allAnimation[currentAnimation].fps){
+        lastFrameTime = cur;
         animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
         
-        let frame = anim[allAnimation[currentAnimation].frames[currentAnimationIndex]];
-        
+        let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
 
         if(frame.flipped){
             if(!frame.flippedsprite){
                 //ctx.strokeStyle = 'yellow';
-                //ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
-
-                frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,frame.y,frame.w,frame.h));
+                //ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+                frame.flippedsprite = flipSprite(ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h));
             }
-
-            //animctx.putImageData(frame.flippedsprite,10+spriteData.syr[frame.i],10+spriteData.sxr[frame.i]);
-            animctx.putImageData(frame.flippedsprite, 10 + spriteData.sxr[frame.i],animcanvas.height  - 10 - (spriteData.sheight[frame.i]  + spriteData.syr[frame.i]));
-
-            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
+            animctx.putImageData(frame.flippedsprite, 10 + frame.xr,animcanvas.height  - 10 - (frame.sh  + frame.yr));
 
         } else {
 
             if(!frame.sprite){
-                frame.sprite = ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
+                frame.sprite = ctx.getImageData(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
             }
-            //animctx.save();
-            animctx.putImageData(frame.sprite, 10 + spriteData.sxr[frame.i],animcanvas.height   - 10 - (spriteData.sheight[frame.i] + spriteData.syr[frame.i]));
-            //animctx.drawImage(canvas,frame.x,frame.y,frame.w,frame.h,10+spriteData.sxr[frame.i],10+spriteData.syr[frame.i],Math.abs(frame.w),Math.abs(frame.h));
-            //animctx.restore();
+            animctx.putImageData(frame.sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
+
         }
         currentAnimationIndex+=1;
-        if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ currentAnimationIndex = 0}
+        if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ 
+            currentAnimationIndex = allAnimation[currentAnimation].loopStart;
+        }
     }
 }
 
+function drawSpriteBoxes(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.lineWidth = 3;
+    for(let i = 0,length = Object.keys(allAnimation).length; i <  length; i++){
+        for(let j = 0,length = allAnimation[i].frames.length; j <  length; j++){
+            let frame = allAnimation[i].frames[j];
+            ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+        }
+    }
+    spriteBoxesRendered = new Image();
+    spriteBoxesRendered.src = canvas.toDataURL();
+}
+let showSpriteBoxes = false;
+let inflightAnimData = false;
+
+function getAnimData(){
+    inflightAnimData = true;
+    return fetch('./data/animData.json')
+            .then( res => res.json())
+            .then( data => {
+                allAnimation = data;
+                inflightAnimData = false;
+                setDropdown();
+            });
+};
+
 function renderSpriteBoxes(){
-    if(!spriteData){
-        fetch('./assets/spriteInfo.json').then( res => res.json()).then(j => {spriteData = j;})
+    if(!showSpriteBoxes) return;
+    if(!allAnimation){
+        if(!inflightAnimData){ getAnimData(); }
         return;
     }
-    if(!spriteBoxesRendered){
-        anim = [];
-        allAnimation = {};
-        animationIndex = -1;
-        let lastName;
-
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.lineWidth = 3;
-     for(let i = 0; i <  spriteData.sid.length ; i++){
-        //if(spriteData.scollectionname[i] !== "Knight") continue;
-            let frame = {};
-            let curName = spriteData.spath[i].split("/")[1];
-            if(lastName != curName){
-                animationIndex += 1;
-                allAnimation[curName] = allAnimation[curName] || ({name:curName,collection:spriteData.scollectionname[i],mw:0,mh:0,frames:[]});
-                lastName = curName;
-            }
-            allAnimation[curName].frames.push(i);
-
-            if(spriteData.sfilpped[i]) {
-                //ctx.strokeStyle = 'red';
-                //frame = {i:i,flipped:true,x:spriteData.sx[i] +spriteData.sheight[i] ,y:canvas.height - spriteData.sy[i] ,w: - spriteData.sheight[i],h:- spriteData.swidth[i]};
-                frame = {i:i,flipped:true,x:spriteData.sx[i] ,y:canvas.height - spriteData.sy[i]  ,w:spriteData.sheight[i],h:- spriteData.swidth[i]};
-            } else {
-                //ctx.strokeStyle = 'green';
-                frame = {i:i,flipped:false,x:spriteData.sx[i], y:canvas.height - spriteData.sy[i], w:spriteData.swidth[i],h: - spriteData.sheight[i]}
-            }
-            allAnimation[curName].mh = Math.max(allAnimation[curName].mh,Math.abs(frame.h + spriteData.syr[i]))
-            allAnimation[curName].mw = Math.max(allAnimation[curName].mw,Math.abs(frame.w + spriteData.sxr[i]))
-            /*if(curName.startsWith("145")){
-                console.log(i)
-                ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
-            }*/
-            anim.push(frame)
-        }
-        spriteBoxesRendered = new Image();
-        spriteBoxesRendered.src = canvas.toDataURL();
+    if(!spriteBoxesRendered ){
+        drawSpriteBoxes();
     } else {
-        setDropdown();
         ctx.drawImage(spriteBoxesRendered,0,0);
-        animateSprites();
     }
-
 }
 
 function renderFrame(){
@@ -205,6 +194,7 @@ function setupImages(){
 function init(){
     setupImages();
     rafRender(renderFrame,TARGET_FRAME_RATE);
+    rafRender(animateSprites,1000);
     animationSelector.onchange = function(){
         if(animationSelector.value == "disabled") return;
         currentAnimation = animationSelector.value;
