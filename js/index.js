@@ -155,19 +155,41 @@ function animateSprites(){
     }
 }
 
+let renderText = false;
 function drawSpriteBoxes(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.lineWidth = 3;
-    for(let i = 0,length = Object.keys(allAnimation).length; i <  length; i++){
+    for(let i in allAnimation){
+        if(allAnimation[i].collection !== "Knight") continue;
         for(let j = 0,length = allAnimation[i].frames.length; j <  length; j++){
             let frame = allAnimation[i].frames[j];
-            ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+            if(frame.flipped){
+                ctx.strokeStyle = "#F00";
+            } else {
+                ctx.strokeStyle = "#F00";
+            }
+            ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+            if(renderText){
+                ctx.save()
+                ctx.fillStyle = "#000";
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+                ctx.restore();
+                ctx.fillStyle = "red";
+                ctx.font = '10px sans-serif';
+                let tex = (i.split(".")[1]).split(" ").reverse();
+                tex[0]+=" "+j;
+                tex.forEach((t,index)=>{
+                    ctx.fillText(t,frame.x,canvas.height - frame.y -1 - 5 - index*10,frame.flipped ? frame.sh : frame.sw);
+                })
+            }
+
         }
     }
     spriteBoxesRendered = new Image();
     spriteBoxesRendered.src = canvas.toDataURL();
 }
-let showSpriteBoxes = false;
+let showSpriteBoxes = true;
 let inflightAnimData = false;
 
 function getAnimData(){
@@ -233,6 +255,9 @@ function init(){
     setupImages();
     rafRender(renderFrame,TARGET_FRAME_RATE);
     rafRender(animateSprites,1000);
+    document.querySelector("#showboxes").onchange = function(){
+        showSpriteBoxes = this.checked;
+    }
     animationSelector.onchange = function(){
         if(animationSelector.value == "disabled") return;
         currentAnimation = animationSelector.value;
