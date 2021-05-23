@@ -189,7 +189,7 @@ function drawSpriteBoxes(){
     spriteBoxesRendered = new Image();
     spriteBoxesRendered.src = canvas.toDataURL();
 }
-let showSpriteBoxes = true;
+let showSpriteBoxes = false;
 let inflightAnimData = false;
 
 function getAnimData(){
