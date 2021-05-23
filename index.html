@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="./style.css">
     </head>
     <body>
-        <h3>Hollow Knight Skin Remixer</h3>
+        <h3 class="heading">Hollow Knight Skin Remixer</h3>
         <div id="progress-modal" class="modal hidden">
             <div class="modal-body">
                 <div class="pure-g">
@@ -17,7 +17,7 @@
         </div>  
         <div class="toolbox--section canvas_container " >
             <div class="checkerboard ">
-                <div id="canvasscroller" class="checkerboard-container scrollable" style="height:1024px;width:1024px;">
+                <div id="canvasscroller" class="checkerboard-container scrollable" style="height:calc(100vh - 80px);width:1024px;">
                     <canvas class="checkerboard-container defaultsize" id="outcanvas" width="4096" height="4096" ></canvas>
                 </div>
             </div>
@@ -26,8 +26,8 @@
             </div>
         </div>
         <div class="tools_container">
-            
-            <details class="toolbox--section" >
+
+            <details class="toolbox--section" open>
                 <summary>Main Tools</summary>
                 <details class="toolbox--section">
                     <summary class="toolbox--button toolbox--section--header">Base Skin :</summary>
@@ -35,7 +35,7 @@
                 </details>
             
                 <details  class="toolbox--section">
-                    <summary class="toolbox--button toolbox--section--header">Slash Effects :</summary>
+                    <summary class="toolbox--button toolbox--section--header">Slash & Effects :</summary>
                     <br>
                     <label>Texture :</label> 
                     <input id="slashes" type="file" accept=".png,.jpg,.jpeg">
@@ -60,7 +60,7 @@
                 </details>
                 
                 <details  class="toolbox--section">
-                    <summary class="toolbox--button toolbox--section--header">Cloak :</summary>
+                    <summary class="toolbox--button toolbox--section--header">Cloak Color:</summary>
                     <br>
                     Cloak Type :
                     <select name="sm" id="cloakmode">
@@ -79,7 +79,7 @@
                 </details>
 
                 <details  class="toolbox--section">
-                    <summary class="toolbox--button toolbox--section--header">EYE :</summary>
+                    <summary class="toolbox--button toolbox--section--header">Replace Eye :</summary>
                     <br>
                     Mode : <select name="eme" id="eyemode">
                         <option value="disabled">Disabled</option>
@@ -92,6 +92,14 @@
                         <option value="enabled">Enabled</option>
                     </select>
                 </details>
+                <div class="pure-g" style="margin-top: 5px;">
+                    <div class="pure-u-1-2"></div>
+                    <div class="pure-u-1-2">
+                        <button class="toolbox--button pure-button "onclick="generate()">Generate Skin</button>
+                    </div>
+                </div>
+
+                
             </details>
             <details class="toolbox--section" open>
                 <summary>Advanced Tools</summary>
@@ -103,46 +111,63 @@
                         </div>
                     </div>
                     <div class="pure-g">
-                        <div class="pure-u-1-3">
+                        <div class="pure-u-1-5">
+                        </div>
+                        <div class="pure-u-1-5">
                             <span class="animbuttons" title="prev" onclick="prevSprite()"> ◀️ </span> 
                         </div>
-                        <div class="pure-u-1-3">
+                        <div class="pure-u-1-5">
                             <span class="animbuttons" title="play/pause" onclick="playPauseAnim()"> ⏯ </span>
                         </div>
-                        <div class="pure-u-1-3">
+                        <div class="pure-u-1-5">
                             <span class="animbuttons" title="next" onclick="nextSprite()"> ▶️ </span>
                         </div>
+                        <div class="pure-u-1-5">
+                            <label>
+                                <input id="zoomout" type="checkbox" class="toolbox--button pure-button ">
+                                <span class="toggle">Zoom</span>
+                            </label>
+                        </div>
                     </div>
-                     
-
-                    Animation : 
-                    <select name="ase" id="animationselector">
-                        <option value="disabled">Disabled</option>
-                    </select>
+                    <div class="pure-g">
+                        <div class="pure-u-2-3">
+                            <select name="ase" id="animationselector" class="toolbox--button pure-button">
+                                <option value="disabled">Animation</option>
+                            </select>
+                        </div>
+                        <div class="pure-u-1-3">
+                            <button style="width:100%;" class="toolbox--button pure-button "onclick="findCurrentSprite()">Find</button>
+                        </div>
+                    </div>
+                    
                 </details>
-                <div>
-                    show boxes : <input id="showboxes" type="checkbox">
-                </div>
-                <div>
-                    show eye boxes : <input id="showeyeboxes" type="checkbox">
-                </div>
-
-                <div>
-                    zoom : <input id="zoomout" type="checkbox">
-                    <button class="toolbox--button pure-button "onclick="findCurrentSprite()">Find Current</button>
-
-                </div>
-
-
-                <div>
-                    edit quads : <input id="editquads" type="checkbox">
-                </div>
-                <button class="toolbox--button pure-button "onclick="exportquads()">Export Edited Data</button>
-
+                <div class="toolbox--section">
+                
+                    <label>
+                        <input id="showboxes" type="checkbox">
+                        <span class="toggle">Show Boxes</span>
+                    </label>
+                    <label>
+                        <input id="showeyeboxes" type="checkbox">
+                        <span class="toggle">Show Quads</span>
+                    </label>
+    
+    
+                    <label>
+                        <input id="editquads" type="checkbox">
+                        <span class="toggle">Edit Quads</span>
+                    </label>
+                </div>   
+                
+                <div class="pure-g" style="margin-top: 5px;">
+                    <div class="pure-u-1-2"></div>
+                    <div class="pure-u-1-2">
+                        <button class="toolbox--button pure-button "onclick="exportquads()">Export Edited Data</button>
+                    </div>
+                </div>             
             </details>
             <br>
 
-            <button class="toolbox--button pure-button "onclick="generate()">Generate Skin</button>
         
         </div>
         <script src="./js/utilities.js"></script>

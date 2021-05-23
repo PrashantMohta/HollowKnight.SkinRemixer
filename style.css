@@ -2,16 +2,25 @@ body{
     background:#292C33;
     color:white;
 }
+.heading{
+
+    line-height: 40px;
+    height: 40px;
+    padding: 0 20px;
+    margin: 0;
+}
 .canvas_container{
-    max-width:calc(100vw - 300px);
-    width:1024px;
+    width: calc(100vw - 330px);
 }
 .tools_container{
-    width:300px;
+    width: 300px;
     position: fixed;
-    padding: 10px;
+    margin: 40px 5px;
     right: 0;
     top: 0;
+    overflow: auto;
+    max-height: calc(100vh - 60px);
+    height: 100vh;
 }
 .toolbox--section{
     background: #434854;
@@ -30,6 +39,9 @@ body{
     display: block;
     border-radius: 5px;
     box-shadow:none;
+}
+#animationselector{
+    width:180px;
 }
 
 .toolbox--button{
@@ -141,3 +153,28 @@ progress { color: #A9B5D4; }
 .animbuttons:hover{
     transform:scale(1.1);
 }
+
+
+
+.toggle {
+    background-color:#464b58;
+    border-radius:4px;
+    font-weight:700;
+    color:#FFF;
+    font-size:.85em;
+    text-decoration:none;
+    text-align:center;
+    /* height: 40px; */
+    /* line-height: 40px; */
+    cursor: pointer;
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 2px;
+    margin: 0 auto;
+    transition:background-color 150ms ease-in;
+}
+    
+.toggle:hover { background-color:#8691aa; }
+input[type=checkbox] {display:none;}
+input[type=checkbox]:checked + .toggle {   background-color:#767F94;    }
+input[type=checkbox]:checked:hover + .toggle {   background-color:#8691aa;    }
