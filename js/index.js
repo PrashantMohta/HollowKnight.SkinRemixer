@@ -24,6 +24,7 @@ let eyeClip = document.querySelector('#eyeclip');
 
 let animationSelector = document.querySelector("#animationselector");
 
+let canvasScroller = document.querySelector("#canvasscroller");
 
 function getFormState(){
     return {
@@ -93,6 +94,7 @@ function prevSprite(){
     } else {
         currentAnimationIndex = allAnimation[currentAnimation].frames.length - 1
     }
+    editQuadsChanged = true;
     renderCurrentSprite();
 }
 function playPauseAnim(){
@@ -101,6 +103,8 @@ function playPauseAnim(){
         return 
     }
     playAnim = !playAnim;
+    editQuadsChanged = true;
+    renderCurrentSprite();
 }
 function nextSprite(){
     if(!allAnimation){
@@ -112,13 +116,100 @@ function nextSprite(){
     } else {
         currentAnimationIndex = 0;
     }
+    editQuadsChanged = true;
     renderCurrentSprite();
 }
+
+
+function pointInRect(point,rect){
+    if((rect.x1 <= point.x && point.x <= rect.x2) && (rect.y1 <= point.y && point.y <= rect.y2) ) {
+    ctx.strokeRect(point.x,point.y,1,1);
+    ctx.strokeRect(rect.x1,rect.y1,rect.x2 - rect.x1,rect.y2 - rect.y1);
+    }
+    return (rect.x1 <= point.x && point.x <= rect.x2) && (rect.y1 <= point.y && point.y <= rect.y2)
+}
+
+let editQuadsChanged = true;
+function renderEyeQuads(frame,frameQuads){
+    if(!showEyeQuads && !editQuads) return;
+    if(editQuads && editQuadsChanged) {
+        
+        editQuadsChanged = false;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(!renderOutData){
+            ctx.drawImage(images[BASE],0,0,canvas.width,canvas.height);
+        } else {
+            ctx.putImageData(outData,0,0);
+        }
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'red'
+        ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
+    } 
+
+    if(showEyeQuads || editQuads) {
+        ctx.save()
+        for(let q in frameQuads) {
+            if(editQuads) {
+                ctx.globalAlpha = 0.3;
+                drawImgOnCorners(ctx,images[EYE_DEFAULT],quads[frameQuads[q].quadType][frameQuads[q].quadIndex])
+            }
+            drawCorners(ctx,quads[frameQuads[q].quadType][frameQuads[q].quadIndex],editQuads);
+        }
+        ctx.restore();
+    }
+ }
+
+ function exportquads(){
+     let data = {animation:allAnimation,quads:quads}
+     saveObjasJSON("animData.json",data);
+ }
+/*
+    renderQuadsForCurrentSprite(currentAnimation,currentAnimationIndex,
+        {x:frame.x,y:canvas.height - frame.y -1,w:frame.w,h:frame.h},
+        animctx,
+        {x:10 + frame.xr,y:animcanvas.height   - 10 - (frame.sh + frame.yr),w:frame.w,h:frame.h})
+*/
+function renderQuadsForCurrentSprite(inputFrame){
+    renderEyeQuads(inputFrame,inputFrame.q);
+}
+let cPoint;
+let currpt = -1;
+canvas.onmousedown = function(e) {
+    let pos = getXY(canvas,e);
+    let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
+    let frameQuads = frame.q;
+    if(currpt == -1){
+        for(let q in frameQuads) {
+            var corners = quads[frameQuads[q].quadType][frameQuads[q].quadIndex];
+            for(var i = 0, p; p = corners[i++];) {
+                if (inCircle(p, pos)) {
+                    cPoint = p; break
+                }
+            }
+            if(cPoint){break;}
+        }
+    } else {
+        corners[currpt] = pos;
+    }
+}
+canvas.onmousemove = function(e) {
+    let now = Date.now();
+  if (cPoint) {
+    let pos = getXY(canvas,e);
+    cPoint.x = pos.x; 
+    cPoint.y = pos.y;
+    editQuadsChanged = true;
+  }
+}
+canvas.onmouseup = function() {cPoint = null}
+
 function renderCurrentSprite(){
     
     animctx.clearRect(0,0,animcanvas.width,animcanvas.height);
-
     let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
+    
+    renderQuadsForCurrentSprite(frame)
+
     if(!spriteData[frame]){spriteData[frame.i] = {}}
     if(frame.flipped){
         if(!spriteData[frame.i].flippedsprite){
@@ -136,21 +227,24 @@ function renderCurrentSprite(){
         animctx.putImageData(spriteData[frame.i].sprite, 10 + frame.xr,animcanvas.height   - 10 - (frame.sh + frame.yr));
 
     }
+   
 }
 function animateSprites(){
     if(!allAnimation){
         if(!inflightAnimData){ getAnimData(); }
         return 
     }
-    if(animationSelector.value == "disabled" || !playAnim) return;
+    if(animationSelector.value == "disabled") return;
 
     let cur = Date.now();
-    if(currentAnimation && cur - lastFrameTime > 1000/allAnimation[currentAnimation].fps){
+    if(currentAnimation && ((playAnim && cur - lastFrameTime > 1000/allAnimation[currentAnimation].fps) || (!playAnim && cur - lastFrameTime > 1000/5)) ){
         lastFrameTime = cur;
         renderCurrentSprite();
-        currentAnimationIndex+=1;
-        if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ 
-            currentAnimationIndex = allAnimation[currentAnimation].loopStart;
+        if(playAnim){
+            currentAnimationIndex+=1;
+            if(currentAnimationIndex >= allAnimation[currentAnimation].frames.length){ 
+                currentAnimationIndex = allAnimation[currentAnimation].loopStart;
+            }
         }
     }
 }
@@ -164,9 +258,9 @@ function drawSpriteBoxes(){
         for(let j = 0,length = allAnimation[i].frames.length; j <  length; j++){
             let frame = allAnimation[i].frames[j];
             if(frame.flipped){
-                ctx.strokeStyle = "#F00";
+                ctx.strokeStyle = "#000";
             } else {
-                ctx.strokeStyle = "#F00";
+                ctx.strokeStyle = "#000";
             }
             ctx.strokeRect(frame.x,canvas.height - frame.y -1,frame.w,frame.h);
             if(renderText){
@@ -189,15 +283,16 @@ function drawSpriteBoxes(){
     spriteBoxesRendered = new Image();
     spriteBoxesRendered.src = canvas.toDataURL();
 }
-let showSpriteBoxes = true;
+let showSpriteBoxes = false;
 let inflightAnimData = false;
-
+let quads = [];
 function getAnimData(){
     inflightAnimData = true;
     return fetch('./data/animData.json')
             .then( res => res.json())
             .then( data => {
-                allAnimation = data;
+                allAnimation = data.animation;
+                quads = data.quads;
                 inflightAnimData = false;
                 setDropdown();
             });
@@ -217,6 +312,7 @@ function renderSpriteBoxes(){
 }
 
 function renderFrame(){
+    if(editQuads) return; // only rerender here when not editing quads
     ctx.clearRect(0,0,canvas.width,canvas.height);
     if(!renderOutData){
         ctx.drawImage(images[BASE],0,0,canvas.width,canvas.height);
@@ -251,12 +347,35 @@ function setupImages(){
     bindInputToImg(document.getElementById("eyes"),images[EYE]);
 }
 
+function findCurrentSprite(){
+    let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
+    if(frame){
+        canvasScroller.scrollTo(frame.x - canvasScroller.clientWidth/2,canvas.height - frame.y -1 - canvasScroller.clientWidth/2);
+    }
+}
+let showEyeQuads = false;
+
+let editQuads = false;
 function init(){
     setupImages();
     rafRender(renderFrame,TARGET_FRAME_RATE);
     rafRender(animateSprites,1000);
     document.querySelector("#showboxes").onchange = function(){
         showSpriteBoxes = this.checked;
+    }
+    document.querySelector("#showeyeboxes").onchange = function(){
+        showEyeQuads = this.checked;
+    }
+    document.querySelector("#zoomout").onchange = function(){
+        if(this.checked){
+            canvas.classList.add("zoomedsize")
+            findCurrentSprite();
+        } else {
+            canvas.classList.remove("zoomedsize")
+        }
+    }
+    document.querySelector("#editquads").onchange = function(){
+        editQuads = this.checked;
     }
     animationSelector.onchange = function(){
         if(animationSelector.value == "disabled") return;

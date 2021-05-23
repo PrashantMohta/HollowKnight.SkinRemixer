@@ -152,6 +152,22 @@ function drawImgOnCorners(ctx,img,corners){
         }
     }
 }
+let radius = 5;
+function drawCorners(ctx,corners,handles = false) {
+  ctx.strokeStyle = "#09f"; 
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  // border
+  for(var i = 0, p; p = corners[i++];){
+    ctx[i ? "lineTo" : "moveTo"]( p.x,p.y);
+  } 
+  ctx.closePath();
+  // circular handles
+  if(handles){
+    for(i = 0; p = corners[i++];) {ctx.moveTo(p.x + radius, p.y); ctx.arc(p.x, p.y, radius, 0, 6.28);}
+  }
+  ctx.stroke()
+}
 
 function flipSprite(img){
     let flippedimg = new ImageData(img.height,img.width);
@@ -172,7 +188,7 @@ function flipSprite(img){
 
 function getNewCanvas(width,height){
     let canvas;
-    if(self.OffscreenCanvas){
+    if(!self.document && self.OffscreenCanvas){
         canvas = new OffscreenCanvas(width,height);
     } else {
         canvas = document.createElement("canvas");
@@ -246,3 +262,38 @@ function getWorker(src,baseSrc){
     }
     return worker;
 }
+
+function inCircle(p, pos) {
+    var dx = pos.x - p.x,
+        dy = pos.y - p.y;
+    return dx*dx + dy*dy <= radius * radius
+  }
+
+function getXY(canvas,evt) {
+    var rect = canvas.getBoundingClientRect(), // abs. size of element
+      scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
+      scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+
+    return {
+        x: (evt.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
+        y: (evt.clientY - rect.top) * scaleY     // been adjusted to be relative to element
+    }
+  }
+
+  function saveObjasJSON(filename, obj){
+    const blob = new Blob([JSON.stringify(obj,null, 2)], { type: "text/json" });
+    const link = document.createElement("a");
+
+    link.download = filename;
+    link.href = window.URL.createObjectURL(blob);
+    link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+
+    const evt = new MouseEvent("click", {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+    });
+
+    link.dispatchEvent(evt);
+    link.remove()
+};

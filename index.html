@@ -15,10 +15,10 @@
                 </div>
             </div>
         </div>  
-        <div class="toolbox--section canvas_container">
-            <div class="checkerboard">
-                <div class="checkerboard-container">
-                    <canvas class="checkerboard-container" id="outcanvas" width="4096" height="4096" style="width:1024px;height:1024px;"></canvas>
+        <div class="toolbox--section canvas_container " >
+            <div class="checkerboard ">
+                <div id="canvasscroller" class="checkerboard-container scrollable" style="height:1024px;width:1024px;">
+                    <canvas class="checkerboard-container defaultsize" id="outcanvas" width="4096" height="4096" ></canvas>
                 </div>
             </div>
 
@@ -27,7 +27,7 @@
         </div>
         <div class="tools_container">
             
-            <details class="toolbox--section" open>
+            <details class="toolbox--section" >
                 <summary>Main Tools</summary>
                 <details class="toolbox--section">
                     <summary class="toolbox--button toolbox--section--header">Base Skin :</summary>
@@ -93,7 +93,7 @@
                     </select>
                 </details>
             </details>
-            <details class="toolbox--section" >
+            <details class="toolbox--section" open>
                 <summary>Advanced Tools</summary>
                 <details class="toolbox--section" open>
                     <summary class="toolbox--button toolbox--section--header">Animated Preview</summary>
@@ -120,7 +120,25 @@
                         <option value="disabled">Disabled</option>
                     </select>
                 </details>
-                show boxes : <input id="showboxes" type="checkbox">
+                <div>
+                    show boxes : <input id="showboxes" type="checkbox">
+                </div>
+                <div>
+                    show eye boxes : <input id="showeyeboxes" type="checkbox">
+                </div>
+
+                <div>
+                    zoom : <input id="zoomout" type="checkbox">
+                    <button class="toolbox--button pure-button "onclick="findCurrentSprite()">Find Current</button>
+
+                </div>
+
+
+                <div>
+                    edit quads : <input id="editquads" type="checkbox">
+                </div>
+                <button class="toolbox--button pure-button "onclick="exportquads()">Export Edited Data</button>
+
             </details>
             <br>
 
