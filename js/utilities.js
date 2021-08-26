@@ -6,6 +6,7 @@ const CLOAK_MASK_DEFAULT = "./assets/cloak_mask_default.png";
 const EYE_WHITE = "./assets/eye_white.png"; 
 const EYE_DEFAULT =  "./assets/eye.png";
 const EYE = "eye";
+const HAT = "hat";
 const BASE = 'base';
 const SLASH = 'slash';
 
@@ -60,6 +61,11 @@ function bindInputToImg(input,img){
 function transferImageToWorker(name,bmp){
     worker.postMessage({ event : 'image', name : name , image: bmp },   [bmp] );
 }
+
+function transferDataToWorker(data){
+    worker.postMessage({ event : 'data', data : data });
+}
+
 
 function rafRender(fn,framerate){
     let last = 0;
@@ -126,6 +132,31 @@ function lerp(p1, p2, t) {
     return {
       x: p1.x + (p2.x - p1.x) * t, 
       y: p1.y + (p2.y - p1.y) * t}
+  }
+
+
+
+  let supportedQuadTypes = ["hat","eye"]
+
+  function setVariablesFromData(data){
+      animation = data.animation;
+      quads = data.quads;
+      supportedQuadTypes.forEach(key=>{
+          if(!quads[key]){
+              quads[key] = [];
+          }
+      })
+      return;
+      let anims = Object.keys(animation)
+      anims.forEach( anim => {
+          animation[anim].frames.forEach( frame =>{
+              frame.q.forEach( quad => {
+                  if(quad.quadType == "eye"){
+                      eyes.push(quads[quad.quadType][quad.quadIndex]);
+                  }
+              })
+          })
+      });
   }
 
 let step = 1;
@@ -280,6 +311,26 @@ function getXY(canvas,evt) {
     }
   }
 
+  function filePicker(accept){
+    return new Promise((resolve,reject)=>{
+        let input = document.createElement('input');
+        input.type = 'file';
+        if(accept){
+            input.accept = accept;
+        }
+        input.onchange = _ => {
+                let files =   Array.from(input.files);
+                console.log(files);
+                const reader = new FileReader();
+                reader.addEventListener('load', (event) => {
+                    resolve(event.target.result);
+
+                });
+                reader.readAsText(files[0]);
+            };
+        input.click();
+    });
+  }
   function saveObjasJSON(filename, obj){
     const blob = new Blob([JSON.stringify(obj,null, 2)], { type: "text/json" });
     const link = document.createElement("a");

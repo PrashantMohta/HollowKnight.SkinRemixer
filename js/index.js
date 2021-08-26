@@ -22,6 +22,9 @@ let cloakColorMode = document.querySelector('#cloakcolormode');
 let eyeMode = document.querySelector('#eyemode');
 let eyeClip = document.querySelector('#eyeclip');
 
+
+let hatMode = document.querySelector('#hatmode');
+
 let animationSelector = document.querySelector("#animationselector");
 
 let canvasScroller = document.querySelector("#canvasscroller");
@@ -39,8 +42,13 @@ function getFormState(){
             colorBlendMode : cloakColorMode.value,
         },
         eyes : {
+            quadType: EYE,
             mode: eyeMode.value,
             clip: eyeClip.value
+        },
+        hat : {
+            quadType: HAT,
+            mode: hatMode.value,
         }
     }
 }
@@ -56,6 +64,8 @@ function generate(){
 let spriteBoxesRendered;
 let index=0;
 let allAnimation;
+let animation;
+
 let dropdownSet = false;
 let currentAnimation;
 let currentAnimationIndex = 0;
@@ -154,6 +164,7 @@ function renderEyeQuads(frame,frameQuads){
                 drawImgOnCorners(ctx,images[EYE_DEFAULT],quads[frameQuads[q].quadType][frameQuads[q].quadIndex])
             }
             drawCorners(ctx,quads[frameQuads[q].quadType][frameQuads[q].quadIndex],editQuads);
+            
         }
         ctx.restore();
     }
@@ -162,6 +173,20 @@ function renderEyeQuads(frame,frameQuads){
  function exportquads(){
      let data = {animation:allAnimation,quads:quads}
      saveObjasJSON("animData.json",data);
+ }
+ function importquads(){
+    filePicker(".json").then((json)=>{
+        let data = JSON.parse(json);
+        setVariablesFromData(data);
+        transferDataToWorker(data);      
+    }).catch(e=>{
+        alert("error. please check console.");
+        console.error(e);
+    })
+ }
+ function applyquads(){
+    let data = {animation:allAnimation,quads:quads}
+    transferDataToWorker(data);      
  }
 /*
     renderQuadsForCurrentSprite(currentAnimation,currentAnimationIndex,
@@ -202,6 +227,20 @@ canvas.onmousemove = function(e) {
   }
 }
 canvas.onmouseup = function() {cPoint = null}
+
+let quadorder = ["Top Left","Top Right","Bottom Right","Bottom Left"];
+function getCurrentFrameQuads(){
+    let frame = allAnimation[currentAnimation].frames[currentAnimationIndex];
+    let quad = frame.q;
+    console.log(quad);
+    quad.forEach((quad,qi)=>{
+        let points = quads[quad.quadType][quad.quadIndex];
+        console.log(`${quad.quadType} Quad ${qi} : Index ${quad.quadIndex}`);
+        points.forEach((point,index)=>{
+            console.log(`${quadorder[index]} Point :`,point);
+        })
+    })
+}
 
 function renderCurrentSprite(){
     
@@ -291,8 +330,8 @@ function getAnimData(){
     return fetch('./data/animData.json')
             .then( res => res.json())
             .then( data => {
-                allAnimation = data.animation;
-                quads = data.quads;
+                setVariablesFromData(data);
+                allAnimation = animation;
                 inflightAnimData = false;
                 setDropdown();
             });
@@ -338,6 +377,15 @@ function setupImages(){
     }
     images[EYE].src = EYE_DEFAULT;
 
+    images[HAT] = new Image();
+    images[HAT].onload = ()=>{ 
+        if(images[HAT].width > 20*2 || images[HAT].height > 20*2){
+            images[HAT].src = constrainToSize(images[HAT],20*2,20*2); // reduce resolution to max of 2x expected resolution
+        }
+        createImageBitmap(images[HAT]).then(bmp => {transferImageToWorker(HAT,bmp)});  
+    }
+    images[HAT].src = EYE_DEFAULT;
+
     images[SLASH] = new Image();
     images[SLASH].onload = ()=>{ 
         createImageBitmap(images[SLASH]).then(bmp => {transferImageToWorker(SLASH,bmp)});  
@@ -345,6 +393,7 @@ function setupImages(){
     bindInputToImg(document.getElementById("baseSkin"),images[BASE]);
     bindInputToImg(document.getElementById("slashes"),images[SLASH]);
     bindInputToImg(document.getElementById("eyes"),images[EYE]);
+    bindInputToImg(document.getElementById("hat"),images[HAT]);
 }
 
 function findCurrentSprite(){

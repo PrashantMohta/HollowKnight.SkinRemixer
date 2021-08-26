@@ -16,6 +16,9 @@ self.hkoffscreenWorker = (function (){
             images[e.data.name] = e.data.image;
             imageData[e.data.name] = undefined;
         } 
+        if(e.data.event === 'data'){
+            setVariablesFromData(e.data.data);
+        } 
         if(e.data.event === 'generate'){
             generateSkin(e.data.options);
         }
@@ -83,32 +86,37 @@ self.hkoffscreenWorker = (function (){
             postMessageCustom({event:'progress',data:{stage:'copy cloak',percent:100}});
     
         }
-    
-        if(options.eyes.mode != "disabled"){
-            //render eyes
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.putImageData(baseData,0,0);
-            
-            for(let i=0; i < eyes.length; i++){
-                drawImgOnCorners(ctx,images[EYE],eyes[i]); 
-                postMessageCustom({event:'progress',data:{stage:'drawing eyes',percent:100*((i+1)/eyes.length)}});
+        Object.values(options).forEach((option)=>{
+            if(!option.quadType){ return }
+            if(!quads[option.quadType] || !quads[option.quadType].length) {return;}
+
+            if(option.mode != "disabled"){
+                //render quads
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.putImageData(baseData,0,0);
+                
+                for(let i=0; i < quads[option.quadType].length; i++){
+                    drawImgOnCorners(ctx,images[option.quadType],quads[option.quadType][i]); 
+                    postMessageCustom({event:'progress',data:{stage:`drawing ${option.quadType} quads`,percent:100*((i+1)/quads[option.quadType].length)}});
+                }
+        
+                // clip to fix quads going out of the borders
+                if(option.clip != "disabled"){
+                    postMessageCustom({event:'progress',data:{stage:'clip eyes',percent:0}});
+                    ctx.save()
+                    ctx.globalCompositeOperation = 'destination-in';
+                    ctx.drawImage(images[baseSprite], 0, 0, canvas.width,canvas.height);
+                    ctx.restore()
+                    postMessageCustom({event:'progress',data:{stage:'clip eyes',percent:100}});
+                }
+        
+                postMessageCustom({event:'progress',data:{stage:'finishing up',percent:0}});
+                baseData = ctx.getImageData(0,0,canvas.width,canvas.height);
+                postMessageCustom({event:'progress',data:{stage:'finishing up',percent:100}});
+        
             }
-    
-            // clip to fix eyes going out of the borders
-            if(options.eyes.clip != "disabled"){
-                postMessageCustom({event:'progress',data:{stage:'clip eyes',percent:0}});
-                ctx.save()
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.drawImage(images[baseSprite], 0, 0, canvas.width,canvas.height);
-                ctx.restore()
-                postMessageCustom({event:'progress',data:{stage:'clip eyes',percent:100}});
-            }
-    
-            postMessageCustom({event:'progress',data:{stage:'finishing up',percent:0}});
-            baseData = ctx.getImageData(0,0,canvas.width,canvas.height);
-            postMessageCustom({event:'progress',data:{stage:'finishing up',percent:100}});
-    
-        }
+        })
+        
         //send response
         postMessageCustom({event:'output',data:baseData})
         postMessageCustom({event:'progress',data:{stage:'done',percent:100}});

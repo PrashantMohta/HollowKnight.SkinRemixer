@@ -92,6 +92,17 @@
                         <option value="enabled">Enabled</option>
                     </select>
                 </details>
+
+                <details  class="toolbox--section">
+                    <summary class="toolbox--button toolbox--section--header">Add Hat :</summary>
+                    <br>
+                    Mode : <select name="hme" id="hatmode">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled">Enabled</option>
+                    </select>
+                    Image : <input type="file" id="hat"  accept=".png,.jpg,.jpeg">
+                    
+                </details>
                 <div class="pure-g" style="margin-top: 5px;">
                     <div class="pure-u-1-2"></div>
                     <div class="pure-u-1-2">
@@ -151,20 +162,60 @@
                         <input id="showeyeboxes" type="checkbox">
                         <span class="toggle">Show Quads</span>
                     </label>
-    
-    
                     <label>
                         <input id="editquads" type="checkbox">
                         <span class="toggle">Edit Quads</span>
                     </label>
                 </div>   
-                
                 <div class="pure-g" style="margin-top: 5px;">
-                    <div class="pure-u-1-2"></div>
                     <div class="pure-u-1-2">
-                        <button class="toolbox--button pure-button "onclick="exportquads()">Export Edited Data</button>
+                        <button class="toolbox--button pure-button "onclick="applyquads()">Apply Data</button>
                     </div>
-                </div>             
+                </div>
+                <div class="pure-g" style="margin-top: 5px;">
+                    <div class="pure-u-1-2">
+                        <button class="toolbox--button pure-button "onclick="importquads()">Import Data</button>
+                    </div>
+                    <div class="pure-u-1-2">
+                        <button class="toolbox--button pure-button "onclick="exportquads()">Export Data</button>
+                    </div>
+                </div>
+                <details  class="toolbox--section" open>
+                    <summary class="toolbox--button toolbox--section--header">Quads : </summary>
+                    <div class="pure-g" style="margin-top: 5px;">
+                        <div class="pure-u-1-2">Frame : </div>
+                        <div class="pure-u-1-2">FRAME_NUMBER</div>
+                    </div>
+                    <div>
+                        <div class="pure-g" style="margin-top: 5px;">
+                            <div class="pure-u-1-2"> QUAD </div>
+                            <div class="pure-u-1-2">QUAD_NUMBER</div>
+                        </div>
+    
+                        <div class="pure-g" style="margin-top: 5px;">
+                            <div class="pure-u-1-2"> QUAD TYPE </div>
+                            <div class="pure-u-1-2"> QUAD_INDEX </div>
+                        </div>
+                        <div>
+                            
+                            <div class="pure-g" style="margin-top: 5px;">
+                                <div class="pure-u-1-2"> POSITION </div>
+                                <div class="pure-u-1-2"> POINT </div>
+                            </div>
+                            
+                            <div class="pure-g" style="margin-top: 5px;">
+                                <div class="pure-u-1-2">x</div>
+                                <div class="pure-u-1-2"><input type="number" style="width:100%"> </div>
+                            </div>
+        
+                            <div class="pure-g" style="margin-top: 5px;">
+                                <div class="pure-u-1-2">y</div>
+                                <div class="pure-u-1-2"><input type="number" style="width:100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </details>
             </details>
             <br>
 
